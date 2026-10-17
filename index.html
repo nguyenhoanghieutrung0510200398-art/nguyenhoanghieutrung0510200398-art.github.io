@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7653bb">
+  <title>Nhịp Học · Thẻ nhớ & tập trung</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <p id="loading" class="notice">Đang mở Nhịp Học…</p>
+  <section id="recovery" class="panel recovery" hidden>
+    <h1>Chưa đọc được dữ liệu</h1>
+    <p id="recoveryMessage"></p>
+    <p>Dữ liệu trên Google Drive chưa bị ghi đè.</p>
+    <button id="downloadRaw">Tải dữ liệu đang lưu</button>
+    <button id="resetStorage" class="danger">Xóa dữ liệu trên Drive và bắt đầu lại</button>
+  </section>
+
+  <div id="app" class="shell" hidden>
+    <header class="topbar">
+      <a class="brand" href="./">◈ <span>Nhịp Học<small>MỖI NGÀY, MỘT CHÚT TIẾN BỘ</small></span></a>
+      <div class="actions">
+        <button id="themeButton">Chế độ tối</button>
+        <button id="exportButton">Xuất JSON</button>
+        <button id="importButton">Nhập JSON</button>
+        <button id="disconnectButton">Ngắt kết nối Drive</button>
+        <input id="importFile" type="file" accept=".json,application/json" hidden>
+      </div>
+    </header>
+
+    <main>
+      <div class="page-title">
+        <div><p class="eyebrow">KHÔNG GIAN HỌC TẬP CỦA BẠN</p><h1>Học một chút. Nhớ lâu hơn.</h1></div>
+        <span id="saveStatus" class="muted" aria-live="polite">Lưu trên Google Drive</span>
+      </div>
+      <section class="stats" aria-label="Thống kê học tập">
+        <article><strong id="totalCount">0</strong><span>Tổng số thẻ</span></article>
+        <article><strong id="dueCount">0</strong><span>Đến hạn ôn</span></article>
+        <article><strong id="todayCount">0</strong><span>Lượt ôn hôm nay</span></article>
+        <article><strong id="recallRate">—</strong><span>Lượt nhớ được</span></article>
+      </section>
+
+      <section class="panel review-plan">
+        <div class="section-heading"><div><p class="eyebrow">THEO NHỊP CỦA BẠN</p><h2>Chọn nhóm thẻ để ôn</h2></div><button id="startReview" class="primary">Bắt đầu ôn</button></div>
+        <div class="filters">
+          <label>Thư mục kiến thức<select id="folderFilter"><option value="">Tất cả thư mục</option></select></label>
+          <label>Tag<select id="tagFilter"><option value="">Tất cả tags</option></select></label>
+          <label>Kiểu ôn<select id="reviewMode"><option value="due">Ôn theo lịch đến hạn</option><option value="all">Ôn tất cả từ đầu</option></select></label>
+        </div>
+        <div class="review-options">
+          <label class="check"><input id="includeChildren" type="checkbox" checked> Bao gồm thư mục con</label>
+          <label class="check"><input id="reverseCards" type="checkbox"> Đảo mặt câu hỏi / đáp án</label>
+          <span id="scopeCount" class="muted"></span>
+        </div>
+        <p class="hint">Ôn tất cả gồm cả thẻ chưa đến hạn, giữ lịch sử cũ và bỏ qua thẻ tạm nghỉ. Lượt ôn dùng cả bộ lọc và từ khóa bên dưới.</p>
+      </section>
+
+      <div class="workspace">
+        <section class="library" aria-label="Kho thẻ">
+          <div class="library-toolbar"><input id="search" type="search" placeholder="Tìm câu hỏi, đáp án, thư mục, #tag…" aria-label="Tìm thẻ"><button id="newCard" class="primary">+ Tạo thẻ</button></div>
+          <div id="cardList" class="card-grid"></div>
+          <div id="emptyState" class="panel empty"><span>✧</span><h2>Kiến thức bắt đầu từ một câu hỏi</h2><p>Tạo thẻ đầu tiên hoặc thay đổi bộ lọc.</p></div>
+        </section>
+
+        <aside>
+          <section class="panel focus-panel">
+            <div class="section-heading"><h2>Một khoảng tập trung</h2><button id="openFocus" aria-label="Mở đồng hồ toàn màn hình" title="Toàn màn hình">⛶</button></div>
+            <div class="clock" data-clock role="timer" aria-live="off">25:00</div>
+            <label>Thời lượng (phút)<input id="focusMinutes" type="number" min="1" max="180" value="25"></label>
+            <div class="actions"><button class="primary" data-timer="toggle">Bắt đầu</button><button data-timer="reset">Đặt lại</button></div>
+            <p class="hint">Đóng toàn màn hình vẫn giữ thời gian. Báo hết giờ xuất hiện khi trang đang mở.</p>
+          </section>
+          <section class="panel note-panel"><h2>Dữ liệu của bạn</h2><p>Thẻ và lịch ôn được lưu trong một tệp riêng của ứng dụng trên Google Drive của bạn, nên dùng chung được giữa các thiết bị. Dùng <strong>Xuất JSON</strong> để tự sao lưu định kỳ.</p><p>Cần có mạng để lưu và tải dữ liệu.</p></section>
+        </aside>
+      </div>
+    </main>
+    <footer>Nhịp Học · HTML, CSS & JavaScript thuần · Không cần máy chủ</footer>
+  </div>
+
+  <dialog id="editorDialog" aria-labelledby="editorTitle">
+    <form id="cardForm">
+      <div class="section-heading"><h2 id="editorTitle">Tạo thẻ ghi nhớ</h2><button type="button" data-close="editorDialog" aria-label="Đóng">✕</button></div>
+      <input id="cardId" type="hidden">
+      <label>Mặt trước · câu hỏi<textarea id="frontInput" rows="4" maxlength="20000" required></textarea></label>
+      <label>Mặt sau · đáp án<textarea id="backInput" rows="5" maxlength="20000" required></textarea></label>
+      <label>Thư mục · tối đa 4 cấp<input id="folderInput" maxlength="240" placeholder="Nội trú / Tiêu hóa / Viêm tụy / Chẩn đoán" list="folderSuggestions"></label>
+      <datalist id="folderSuggestions"></datalist>
+      <label>Tags · cách nhau bằng dấu phẩy<input id="tagsInput" maxlength="500" placeholder="cap-cuu, noi-tru, can-on"></label>
+      <label class="check"><input id="suspendedInput" type="checkbox"> Tạm nghỉ thẻ này</label>
+      <p id="editorError" class="error" role="alert"></p>
+      <div class="actions end"><button type="button" data-close="editorDialog">Hủy</button><button id="saveCard" class="primary" type="submit">Lưu thẻ</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="reviewDialog" aria-labelledby="reviewTitle">
+    <div class="section-heading"><div><p id="reviewProgress" class="eyebrow"></p><h2 id="reviewTitle">Tự nhớ trước khi lật thẻ</h2></div><button data-close="reviewDialog" aria-label="Đóng lượt ôn">✕</button></div>
+    <p id="reviewMeta" class="muted"></p>
+    <div id="question" class="review-face"></div>
+    <div id="answer" class="review-face answer" hidden></div>
+    <button id="revealButton" class="primary wide">Lật thẻ <kbd>Space</kbd></button>
+    <div id="gradeButtons" class="grades" hidden>
+      <button data-grade="again"><strong>1 · Quên</strong><small></small></button>
+      <button data-grade="hard"><strong>2 · Khó</strong><small></small></button>
+      <button data-grade="good"><strong>3 · Tốt</strong><small></small></button>
+      <button data-grade="easy"><strong>4 · Dễ</strong><small></small></button>
+    </div>
+    <div class="actions end"><button id="undoReview">Hoàn tác <kbd>Z</kbd></button><button data-close="reviewDialog">Kết thúc lượt ôn</button></div>
+    <p class="hint">Space: lật thẻ · 1–4: đánh giá · Z: hoàn tác · Esc: đóng.</p>
+  </dialog>
+
+  <dialog id="focusDialog" class="fullscreen" aria-labelledby="focusTitle">
+    <div class="focus-content"><h2 id="focusTitle">Tập trung vào một điều</h2><div class="clock" data-clock role="timer" aria-live="off">25:00</div><div class="actions"><button class="primary" data-timer="toggle">Bắt đầu</button><button data-timer="reset">Đặt lại</button><button id="closeFocus">Thu nhỏ · Esc</button></div></div>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>Bạn cần bật JavaScript để dùng Nhịp Học.</noscript>
+</body>
+</html>
